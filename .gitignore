@@ -1,0 +1,30 @@
+# secrets / personal
+webos-app/js/tmdb-token.js
+webos-app/js/dev-session.js
+.env
+.env.*
+*.local
+*.local.*
+# TV device data: IP, passphrase, Dev Mode session token, SSH keys (ares-cli keeps these in ~/.webos and ~/.ssh;
+# never copy them into the repo)
+.webos/
+novacom-devices.json
+devtoken
+*devmode*token*
+!tools/devmode-secret.sh
+*_webos
+*.pem
+*.key
+id_rsa*
+
+# build output
+build/
+dist/
+*.ipk
+
+# tooling
+node_modules/
+*.log
+test-results/
+.claude/
+.DS_Store

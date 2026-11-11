@@ -1,0 +1,142 @@
+name: Release
+
+# Opt-in: a merge to main only releases if the merged PR has a release label
+# (release:patch | release:minor | release:major). No label = no release.
+#   1. picks the bump from the merged PR's label
+#   2. bumps the version in webos-app/appinfo.json and package.json, commits, tags vX.Y.Z
+#   3. builds the .ipk and a Homebrew Channel manifest and publishes a GitHub Release
+# Can also be run by hand (Actions > Release > Run workflow) to cut a release of a chosen size.
+#
+# webOS .ipk files are not signed; Developer Mode / Homebrew Channel / ares-install accept them as is.
+# No TMDB token is ever included.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    # Skip the bot's own version commit so a release never triggers another release.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-24.04
+    outputs:
+      released: ${{ steps.bump.outputs.released }}
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide bump type
+        id: kind
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "kind=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          LABELS="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[].labels[].name' || true)"
+          echo "PR labels: ${LABELS:-<none>}"
+          if grep -qx 'release:major' <<<"$LABELS"; then kind=major
+          elif grep -qx 'release:minor' <<<"$LABELS"; then kind=minor
+          elif grep -qx 'release:patch' <<<"$LABELS"; then kind=patch
+          else kind=skip; fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version, commit and tag
+        id: bump
+        if: steps.kind.outputs.kind != 'skip'
+        run: |
+          # Latest released version = highest v* tag; fall back to appinfo.json for a first release.
+          LAST="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -1)"
+          LAST="${LAST#v}"
+          [[ -n "$LAST" ]] || LAST="$(node -p "require('./webos-app/appinfo.json').version")"
+          IFS=. read -r MA MI PA <<<"$LAST"
+          case "${{ steps.kind.outputs.kind }}" in
+            major) MA=$((MA+1)); MI=0; PA=0 ;;
+            minor) MI=$((MI+1)); PA=0 ;;
+            *)     PA=$((PA+1)) ;;
+          esac
+          NEW="$MA.$MI.$PA"
+          echo "$LAST -> $NEW"
+          for f in webos-app/appinfo.json package.json; do
+            node -e "const fs=require('fs'),f=process.argv[1],j=JSON.parse(fs.readFileSync(f));j.version=process.argv[2];fs.writeFileSync(f,JSON.stringify(j,null,2)+'\n')" "$f" "$NEW"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add webos-app/appinfo.json package.json
+          git commit -m "chore(release): v${NEW} [skip ci]"
+          git tag -a "v${NEW}" -m "v${NEW}"
+          git push origin HEAD:main "v${NEW}"
+          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+
+  ipk:
+    needs: version
+    if: needs.version.outputs.released == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      TAG: v${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build .ipk (no tools/, no token)
+        run: |
+          npm ci --no-audit --no-fund
+          rm -f webos-app/js/tmdb-token.js webos-app/js/dev-session.js
+          ./build.sh
+
+      - name: Verify package contents
+        run: |
+          IPK="$(ls dist/*.ipk | head -1)"
+          mkdir -p check && (cd check && ar x "../$IPK" && tar xzf data.tar.gz)
+          find check/usr -type f | sed 's|^check/||'
+          if find check/usr -path '*/tools/*' -o -name '*.example.js' | grep -q .; then echo "dev files in ipk"; exit 1; fi
+          grep -rq 'eyJ' check/usr/palm/applications/*/js --include='*.js' --exclude-dir=lib && { echo "JWT-like string in ipk"; exit 1; } || true
+          test -f check/usr/palm/applications/*/appinfo.json
+
+      - name: Homebrew Channel manifest
+        run: |
+          IPK="$(ls dist/*.ipk | head -1)"
+          node tools/manifest.js "$IPK" "$GITHUB_REPOSITORY" > dist/30nama.manifest.json
+          cat dist/30nama.manifest.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 30nama-ipk
+          path: dist/*
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: |
+            dist/*.ipk
+            dist/30nama.manifest.json
+          generate_release_notes: true
+          body: |
+            `.ipk` for LG webOS TVs. Install with webOS Dev Manager, `ares-install`, or the
+            Homebrew Channel (see the README). `30nama.manifest.json` is the Homebrew Channel manifest.

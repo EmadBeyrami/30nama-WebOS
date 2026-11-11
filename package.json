@@ -1,0 +1,17 @@
+{
+  "name": "30nama-webos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unofficial 30nama client for LG webOS TV.",
+  "scripts": {
+    "dev": "node webos-app/tools/devserver.js 8080",
+    "build": "./build.sh",
+    "icons": "node webos-app/tools/make-icons.js",
+    "test:ui": "node tests/tv-ui.cjs"
+  },
+  "devDependencies": {
+    "@webos-tools/cli": "^3.2.6"
+  },
+  "keywords": ["webos", "lg", "tv", "30nama"],
+  "license": "MIT"
+}
