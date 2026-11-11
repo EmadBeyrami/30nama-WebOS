@@ -149,6 +149,17 @@ const artwork = (poster,i=0) => `<svg xmlns="http://www.w3.org/2000/svg" width="
  await page.evaluate(()=>ptrEl.click());
  await check('pointer mode: OK activates exactly once',()=>({ok:hits===1&&document.body.classList.contains('pointer'),hits}));
  await page.evaluate(()=>{document.dispatchEvent(new CustomEvent('cursorStateChange',{detail:{visibility:false}}));ptrEl.onclick=ptrEl._oc;});
+ // Magic Remote wheel: one notch = one Down/Up step; ignored by a bare player (Up/Down there open menus).
+ await page.evaluate(()=>N.go('archive',{slug:'movies',name:'Movies'},{reset:true}));await page.waitForSelector('.ggrid .card');await page.waitForTimeout(400);
+ await page.evaluate(()=>N.nav.focus(document.querySelector('.ggrid .card')));
+ await page.mouse.move(960,540);await page.mouse.wheel(0,120);await page.waitForTimeout(200);
+ await check('wheel down moves focus one row down',()=>{const a=[...document.querySelectorAll('.ggrid .card')];return {ok:a.indexOf(N.nav.cur)===7,index:a.indexOf(N.nav.cur)};});
+ await page.mouse.wheel(0,-120);await page.waitForTimeout(200);
+ await check('wheel up moves focus back up',()=>{const a=[...document.querySelectorAll('.ggrid .card')];return {ok:a.indexOf(N.nav.cur)===0,index:a.indexOf(N.nav.cur)};});
+ await page.evaluate(()=>{N.platform.webos=false;N.player.start(testPosts[0],[{info:{file_id:'a'},file:{m3u8:'https://offline.invalid/a.m3u8'}},{info:{file_id:'b'},file:{m3u8:'https://offline.invalid/b.m3u8'}}],0);});
+ await page.mouse.wheel(0,120);await page.waitForTimeout(150);await page.mouse.wheel(0,-120);await page.waitForTimeout(150);
+ await check('wheel does not open player menus or episodes',()=>({ok:N.player.open&&!N.player.menuOpen&&!document.getElementById('player-eps').classList.contains('open')}));
+ await page.evaluate(()=>N.player.close());
  // Exercise the library controls merged from upstream using only mocked account APIs.
  await page.evaluate(()=>{N.isLoggedIn=function(){return true;};N.lib.clear();N.go('details',{id:1},{reset:true});});
  await page.waitForSelector('.lib-watchlist');await page.waitForTimeout(350);

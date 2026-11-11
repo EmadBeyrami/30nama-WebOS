@@ -111,7 +111,7 @@
     }, 220);
   }
 
-  document.addEventListener('keydown', function (e) {
+  function onKey(e) {
     var k = e.keyCode;
     if (nav.locked && k !== K.BACK && k !== K.ESC) { e.preventDefault(); return; }
     trackRepeat(e);
@@ -137,7 +137,26 @@
       if (nav.cur) { if (nav.cur.onenter) nav.cur.onenter(); else nav.cur.click(); }
     }
     else if (k === K.TAB) { e.preventDefault(); } // native Tab must not scroll the fixed TV canvas
-  });
+  }
+  document.addEventListener('keydown', onKey);
+
+  // Magic Remote scroll wheel (and mouse wheels / trackpads): each notch is one Up/Down press through the same
+  // key path, so rows, grids, sheets and dialogs all scroll the way the D-pad moves. Small trackpad deltas are
+  // accumulated; one step at most every 110 ms so a fast spin doesn't skip whole screens.
+  var wAcc = 0, wLast = 0, wReset = null;
+  document.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var dy = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY; // lines -> px
+    if (!dy || Math.abs(e.deltaX) > Math.abs(dy)) return;
+    // in the player, Up/Down open the audio menu / episodes: the wheel only scrolls inside an open menu or sheet
+    if (N.player && N.player.open && !nav.scopes.length) return;
+    if ((wAcc > 0) !== (dy > 0)) wAcc = 0;
+    wAcc += dy; clearTimeout(wReset); wReset = setTimeout(function () { wAcc = 0; }, 250);
+    var now = Date.now();
+    if (Math.abs(wAcc) < 30 || now - wLast < 110) return;
+    wLast = now; var down = wAcc > 0; wAcc = 0;
+    onKey({ keyCode: down ? K.DOWN : K.UP, key: down ? 'ArrowDown' : 'ArrowUp', repeat: false, wheel: true, preventDefault: function () {} });
+  }, { passive: false });
   // mouse support for desktop testing (only on real pointer movement, so content sliding under a still cursor never steals focus)
   document.addEventListener('mousemove', function (e) {
     if (!e.movementX && !e.movementY) return;
