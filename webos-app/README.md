@@ -3,7 +3,7 @@
 Plain HTML/CSS/JS web app (no build step). Base resolution 1920x1080.
 
 ## Structure
-- `appinfo.json`, `icon.png` (80), `largeIcon.png` (130): webOS app manifest and placeholder icons (`node tools/make-icons.js` regenerates them, plus `media/icon-512.png`).
+- `appinfo.json`, `icon.png` (80), `largeIcon.png` (130): webOS app manifest and icons built from `media/logo-source.jpeg` (`npm run icons` regenerates them, plus `media/icon-512.png`).
 - `index.html`: shell (global `#stage` backdrop, icon `#rail`, `#content`, player layer, splash, SVG icon sprite).
 - `css/app.css`: "One Stage" design (tokens, fonts, focus rings, motion; only transform/opacity are animated; RTL via logical properties and `--dir`). Spec: `design/DESIGN.md`.
 - `fonts/`: bundled Vazirmatn woff2 (Regular/Medium/Bold/ExtraBold + Farsi-digit `FD` variants, SIL OFL 1.1).

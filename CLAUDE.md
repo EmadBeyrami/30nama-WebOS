@@ -11,7 +11,7 @@ Unofficial 30nama.com client for LG webOS TVs, ported from the Tizen app at gith
 - Run in a desktop browser: `npm run dev` (= `node webos-app/tools/devserver.js 8080`), then open http://localhost:8080/. Arrow keys/Enter/Backspace or Escape (= Back) work; the QR screen has a Guest button.
 - Build: `./build.sh` writes `dist/<id>_<version>_all.ipk`; `./build.sh <ares-device>` also installs and launches. Needs `npm install` first (local ares-cli). Register a TV with `npx ares-setup-device`.
 - UI regression test: `npm install --no-save playwright && npm run test:ui` (uses local Chrome; `COMPAT85=1` strips CSS absent from Chromium 85).
-- Regenerate icons: `npm run icons`. Homebrew manifest: `node tools/manifest.js <ipk> <owner/repo>`.
+- Regenerate icons from `media/logo-source.jpeg`: `npm run icons` (sips or ImageMagick). Homebrew manifest: `node tools/manifest.js <ipk> <owner/repo>`.
 
 ## Architecture
 
