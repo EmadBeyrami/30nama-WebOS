@@ -10,7 +10,7 @@ process.stdout.write(JSON.stringify({
   version: app.version,
   type: 'web',
   title: app.title,
-  appDescription: 'Unofficial 30nama client for LG webOS TV',
+  appDescription: 'Unofficial, unaffiliated open-source TV interface for 30nama. Hosts no content. See DISCLAIMER.md.',
   iconUri: 'https://raw.githubusercontent.com/' + repo + '/main/media/icon-512.png',
   sourceUrl: 'https://github.com/' + repo,
   rootRequired: false,

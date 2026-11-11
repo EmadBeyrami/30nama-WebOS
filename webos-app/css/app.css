@@ -519,6 +519,8 @@ html[lang=fa] .tk-long .n{font-family:"VzFD","Vz",sans-serif;direction:rtl}
 .modal.show .box{transform:none}
 .modal .mt{font-size:var(--t-l);font-weight:700;margin-bottom:12px}
 .modal .mb{font-size:var(--t-body);color:var(--text-2);margin-bottom:36px}
+.modal .box.wide{width:1100px}
+.modal .box.wide .mb{line-height:1.6;color:var(--text-1)}
 .modal .btn{margin-right:16px}
 html[dir=rtl] .modal .btn{margin-right:0;margin-left:16px}
 .modal .btn+.btn{margin-left:0}

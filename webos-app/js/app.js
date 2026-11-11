@@ -122,13 +122,15 @@
   var modal = null;
   N.confirm = function (o) {
     if (modal) return;
-    var m = el('div', 'modal'), box = el('div', 'box');
+    // o: {title, body, ok, onOk, cancel, onCancel (also runs on Back), noCancel, focusOk, wide, danger}
+    var m = el('div', 'modal'), box = el('div', 'box' + (o.wide ? ' wide' : ''));
     box.appendChild(el('div', 'mt', o.title)); box.appendChild(el('div', 'mb', o.body || ''));
-    var row = el('div', 'acts'), cancel = N.ui.btn(o.cancel || N.t('cancel'), function () { N.closeModal(); }, '');
-    var ok = N.ui.btn(o.ok, function () { N.closeModal(); o.onOk(); }, o.danger ? 'danger' : 'primary');
-    row.appendChild(cancel); row.appendChild(ok); box.appendChild(row); m.appendChild(box); document.body.appendChild(m);
-    modal = { el: m, prev: N.nav.cur };
-    N.nav.pushScope(m); void m.offsetWidth; m.classList.add('show'); N.nav.focus(cancel, true);
+    var row = el('div', 'acts'), cancel = o.noCancel ? null : N.ui.btn(o.cancel || N.t('cancel'), function () { N.closeModal(); if (o.onCancel) o.onCancel(); }, '');
+    var ok = N.ui.btn(o.ok, function () { N.closeModal(); if (o.onOk) o.onOk(); }, o.danger ? 'danger' : 'primary');
+    if (cancel) row.appendChild(cancel);
+    row.appendChild(ok); box.appendChild(row); m.appendChild(box); document.body.appendChild(m);
+    modal = { el: m, prev: N.nav.cur, onCancel: o.onCancel || null };
+    N.nav.pushScope(m); void m.offsetWidth; m.classList.add('show'); N.nav.focus(o.focusOk || !cancel ? ok : cancel, true);
   };
   N.closeModal = function () {
     if (!modal) return; var m = modal; modal = null;
@@ -139,6 +141,16 @@
   function exitApp() {
     N.platform.exit();
   }
+  // Disclaimer: must be accepted once (gate) before the app is used; Settings > About shows it again (no gate).
+  var DISC_V = 1;
+  N.showDisclaimer = function (gate, onAccept) {
+    N.confirm({
+      title: N.t('discTitle'), body: N.t('discBody'), wide: true, focusOk: true,
+      ok: N.t('discOk'), onOk: function () { if (gate) N.store.set('disclaimer', DISC_V); if (onAccept) onAccept(); },
+      cancel: N.t('exit'), onCancel: gate ? exitApp : null, noCancel: !gate
+    });
+  };
+  N.disclaimerAccepted = function () { return N.store.get('disclaimer', 0) >= DISC_V; };
   N.confirmExit = function () {
     N.confirm({ title: N.t('exitTitle'), body: N.t('exitBody'), ok: N.t('exit'), danger: false, onOk: exitApp });
   };
@@ -181,7 +193,7 @@
   };
   N.onBack = function () {
     if (N.player.open) { N.player.close(); return; }
-    if (modal) { N.closeModal(); return; }
+    if (modal) { var oc = modal.onCancel; N.closeModal(); if (oc) oc(); return; }
     if (rail.open) { rail.close(true); return; } // Back on the menu: collapse it and return to the content
     if (current && current.back) {
       try { if (current.back()) return; } catch (e) { try { console.warn('back', e && e.message); } catch (x) {} }
@@ -245,6 +257,10 @@
     if (N.store.get('calm', false)) document.body.classList.add('calm');
     splash.dotsT = setTimeout(function () { var d = document.querySelector('#splash .dots3'); if (d) d.classList.add('on'); }, 1800);
     splash.failT = setTimeout(splashExit, 10000);
-    boot();
+    if (N.disclaimerAccepted()) boot();
+    else { // first launch: the disclaimer comes before anything is loaded from 30nama
+      N.splashReady();
+      setTimeout(function () { N.showDisclaimer(true, boot); }, 1300);
+    }
   });
 })();

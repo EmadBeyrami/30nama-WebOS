@@ -46,7 +46,7 @@ const artwork = (poster,i=0) => `<svg xmlns="http://www.w3.org/2000/svg" width="
     return route.fulfill({contentType:rel.endsWith('.css')?'text/css':rel.endsWith('.js')?'application/javascript':'text/html',body});
    } catch(e) {return route.fulfill({status:404,body:''});}
  });
- await page.addInitScript(({lang})=>{localStorage.setItem('n30.guest','true');localStorage.setItem('n30.lang',JSON.stringify(lang));localStorage.setItem('n30.calm','true');},{lang});
+ await page.addInitScript(({lang})=>{localStorage.setItem('n30.guest','true');localStorage.setItem('n30.disclaimer','1');localStorage.setItem('n30.lang',JSON.stringify(lang));localStorage.setItem('n30.calm','true');},{lang});
  await page.goto('http://tv.test/'); await page.waitForSelector('.home .card'); await page.waitForTimeout(1600);
  const check=async (name,fn)=>{const r=await page.evaluate(fn);assert(r.ok,lang+': '+name,r);};
  await check('unofficial sidebar mark renders with visible dimensions',()=>{const e=document.querySelector('.rail-brand .mark'),r=e.getBoundingClientRect();return {ok:e.tagName.toLowerCase()==='svg'&&r.width>0&&r.height>0};});

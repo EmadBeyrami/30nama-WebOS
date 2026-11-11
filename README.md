@@ -2,7 +2,17 @@
 
 An LG webOS TV app: an unofficial client for 30nama.com. It is a port of [30nama-tizenos](https://github.com/msharifi99/30nama-tizenos) (the Samsung Tizen app) with the same UI and features.
 
-> **Disclaimer:** This is an unofficial, community project. It is not affiliated with, endorsed by, or supported by 30nama. You need your own valid 30nama subscription to use it. No content is bundled with this app.
+> [!CAUTION]
+> ## ⚠️ Disclaimer: unofficial side project, no affiliation, no content
+>
+> **This is an unofficial, open-source TV interface developed as a personal side project. It is NOT affiliated with, endorsed by, or connected to 30nama in any way.**
+>
+> - The developer does **not** host, provide, upload or control **any** movies, series or other content. This repository contains interface code only.
+> - Everything shown in the app is loaded by your own device directly from 30nama's servers, with your own account and subscription.
+> - The developer is **not responsible** for the website, its content, its copyright or licensing status, its availability, or how it works, and does **not** support or endorse it.
+> - **You alone are responsible** for how you use this software and for following the laws of your country.
+>
+> Read the full [DISCLAIMER](DISCLAIMER.md) before using this software. The app also shows this notice on first launch and must be accepted before it loads anything.
 
 ## Features
 
@@ -135,9 +145,15 @@ media/        512 px icon for the Homebrew Channel listing
 build.sh      package (and optionally install) with ares-cli
 ```
 
+## Author
+
+Developed by **Emad Beyrami**.
+
+Source code: [github.com/EmadBeyrami/30nama-WebOS](https://github.com/EmadBeyrami/30nama-WebOS). Based on [30nama-tizenos](https://github.com/msharifi99/30nama-tizenos) by msharifi99.
+
 ## License
 
-Released under the [MIT License](LICENSE). The Vazirmatn font in `webos-app/fonts/` is licensed under the SIL Open Font License (see `webos-app/fonts/OFL.txt`).
+Released under the [MIT License](LICENSE), provided "as is" without warranty; see also the [DISCLAIMER](DISCLAIMER.md). The Vazirmatn font in `webos-app/fonts/` is licensed under the SIL Open Font License (see `webos-app/fonts/OFL.txt`).
 
 ## Compatibility
 

@@ -1051,10 +1051,14 @@
       about: function (p) {
         p.appendChild(info('30nama TV', ''));
         p.appendChild(info(N.t('version'), N.config.version));
-        p.appendChild(info(N.t('unofficial'), ''));
+        var dr = el('div', 'orow f fl'); dr.appendChild(el('span', '', N.t('unofficial'))); dr.appendChild(el('div', 'v', N.t('disclaimer') + ' \u203a'));
+        dr.onclick = dr.onenter = function () { N.showDisclaimer(false); }; p.appendChild(dr);
         p.appendChild(info(N.t('apiHost'), (N.api.host || '').replace(/^https?:\/\//, '').replace(/\/api.*$/, '')));
         p.appendChild(info(N.t('tmdb'), N.tmdb.mock() ? N.t('tmdbMock') : (N.tmdb.token() ? N.t('tmdbOn') : N.t('tmdbOff'))));
         if (N.tmdb.enabled()) p.appendChild(el('div', 'note', N.t('tmdbCredit')));
+        [[N.t('devBy'), 'Emad Beyrami'], [N.t('sourceCode'), 'github.com/EmadBeyrami/30nama-WebOS']].forEach(function (x) {
+          var r = info(x[0], x[1]); r.className += ' sm'; r.lastChild.className = 'v latin'; r.lastChild.dir = 'ltr'; p.appendChild(r);
+        });
       },
       tmdb: tmdbPane
     };

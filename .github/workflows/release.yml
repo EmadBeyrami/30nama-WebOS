@@ -140,3 +140,7 @@ jobs:
           body: |
             `.ipk` for LG webOS TVs. Install with webOS Dev Manager, `ares-install`, or the
             Homebrew Channel (see the README). `30nama.manifest.json` is the Homebrew Channel manifest.
+
+            > **Disclaimer:** unofficial, open-source side project. Not affiliated with, endorsed by, or connected to 30nama.
+            > This software hosts and provides no content; the developer is not responsible for the website or its content.
+            > You are responsible for your own use. See [DISCLAIMER.md](https://github.com/${{ github.repository }}/blob/main/DISCLAIMER.md).
