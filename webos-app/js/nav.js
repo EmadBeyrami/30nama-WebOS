@@ -113,6 +113,7 @@
 
   function onKey(e) {
     var k = e.keyCode;
+    if (k >= 37 && k <= 40) nav.holdPointer();
     if (nav.locked && k !== K.BACK && k !== K.ESC) { e.preventDefault(); return; }
     trackRepeat(e);
     for (var i = nav.handlers.length - 1; i >= 0; i--) {
@@ -155,11 +156,17 @@
     var now = Date.now();
     if (Math.abs(wAcc) < 30 || now - wLast < 110) return;
     wLast = now; var down = wAcc > 0; wAcc = 0;
+    nav.holdPointer();
     onKey({ keyCode: down ? K.DOWN : K.UP, key: down ? 'ArrowDown' : 'ArrowUp', repeat: false, wheel: true, preventDefault: function () {} });
   }, { passive: false });
   // mouse support for desktop testing (only on real pointer movement, so content sliding under a still cursor never steals focus)
+  // After a wheel step or key press the pointer usually rests on some other item; Magic Remote hand jitter
+  // must not pull focus back to it. Hover takes focus again only after ~24 px of real pointer travel.
+  var ptrHold = false, ptrTravel = 0;
+  nav.holdPointer = function () { ptrHold = true; ptrTravel = 0; };
   document.addEventListener('mousemove', function (e) {
     if (!e.movementX && !e.movementY) return;
+    if (ptrHold) { ptrTravel += Math.abs(e.movementX) + Math.abs(e.movementY); if (ptrTravel < 24) return; ptrHold = false; }
     var t = e.target; while (t && t !== document.body) { if (t.classList && t.classList.contains('f')) { if (t !== nav.cur) nav.focus(t); return; } t = t.parentNode; }
   });
 })();

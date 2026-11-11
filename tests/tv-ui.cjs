@@ -154,6 +154,8 @@ const artwork = (poster,i=0) => `<svg xmlns="http://www.w3.org/2000/svg" width="
  await page.evaluate(()=>N.nav.focus(document.querySelector('.ggrid .card')));
  await page.mouse.move(960,540);await page.mouse.wheel(0,120);await page.waitForTimeout(200);
  await check('wheel down moves focus one row down',()=>{const a=[...document.querySelectorAll('.ggrid .card')];return {ok:a.indexOf(N.nav.cur)===7,index:a.indexOf(N.nav.cur)};});
+ await page.mouse.move(963,542);await page.mouse.move(961,539);await page.waitForTimeout(50);
+ await check('small pointer jitter after a wheel step keeps the scrolled focus',()=>{const a=[...document.querySelectorAll('.ggrid .card')];return {ok:a.indexOf(N.nav.cur)===7,index:a.indexOf(N.nav.cur)};});
  await page.mouse.wheel(0,-120);await page.waitForTimeout(200);
  await check('wheel up moves focus back up',()=>{const a=[...document.querySelectorAll('.ggrid .card')];return {ok:a.indexOf(N.nav.cur)===0,index:a.indexOf(N.nav.cur)};});
  await page.evaluate(()=>{N.platform.webos=false;N.player.start(testPosts[0],[{info:{file_id:'a'},file:{m3u8:'https://offline.invalid/a.m3u8'}},{info:{file_id:'b'},file:{m3u8:'https://offline.invalid/b.m3u8'}}],0);});
